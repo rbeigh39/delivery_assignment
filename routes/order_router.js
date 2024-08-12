@@ -28,6 +28,12 @@ router.get(
   orderController.getMyOrderRequests
 );
 
+router.patch(
+  "/:id/updateOrderStatus",
+  authController.protect,
+  orderController.updateOrderStatus
+);
+
 router.route("/:id").get(authController.protect, orderController.getOrder);
 
 module.exports = router;

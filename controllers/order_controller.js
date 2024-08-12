@@ -89,11 +89,57 @@ const getMyOrderRequests = catchAsync(async (req, res, next) => {
   });
 });
 
+const updateOrderStatus = catchAsync(async (req, res, next) => {
+  const { status } = req.body;
+  const { id } = req.params;
+
+  if (!status) return next(new AppError('missing field "status"', 400));
+
+  // 1. Get the order by id
+  const order = await Order.findById(id);
+  if (!order) return next(new AppError("No order found with that id", 400));
+
+  // 2. Check if the order belongs to the seller
+  if (order.seller.toString() !== req.user._id.toString())
+    return next(
+      new AppError("You are not authorized to perform this action", 401)
+    );
+
+  // 3. Set the allowed list of status based on the current order status
+  const allowedStatusMappings = {
+    PLACED: ["ACCEPTED", "REJECTED", "CANCELLED", "IN-TRANSIT", "FULFILED"],
+    ACCEPTED: ["ACCEPTED", "CANCELLED", "IN-TRANSIT", "FULFILED"],
+    REJECTED: ["REJECTED"],
+    CANCELLED: ["CANCELLED"],
+    FULFILED: ["FULFILED"],
+    "IN-TRANSIT": ["CANCELLED", "IN-TRANSIT", "FULFILED"],
+  };
+
+  const currentMapping = allowedStatusMappings[order.status];
+  if (!currentMapping)
+    return next(new AppError("Status value not allowed", 400));
+
+  if (currentMapping.indexOf(status) === -1)
+    return next(
+      new AppError(`Status not allowed. Allowed status are: ${currentMapping}`)
+    );
+
+  order.status = status;
+  await order.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Order status successfully updated!",
+    data: { order },
+  });
+});
+
 const getOrder = () => {};
 
 module.exports = {
   createOrder,
   getMyOrders,
   getMyOrderRequests,
+  updateOrderStatus,
   getOrder,
 };
