@@ -124,7 +124,16 @@ const updateOrderStatus = catchAsync(async (req, res, next) => {
       new AppError(`Status not allowed. Allowed status are: ${currentMapping}`)
     );
 
+  const prevOrderStatus = order.status;
   order.status = status;
+
+  order.transitLogs = [
+    ...order.transitLogs,
+    {
+      message: `Status changed from ${prevOrderStatus} to ${status}`,
+    },
+  ];
+
   await order.save();
 
   res.status(200).json({
