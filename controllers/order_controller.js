@@ -48,7 +48,6 @@ const createOrder = catchAsync(async (req, res, next) => {
 });
 
 const getMyOrders = catchAsync(async (req, res, next) => {
-  console.log("request is here rn");
   const orderQuery = new APIFeatures(
     Order.find({ buyer: req.user._id }),
     req.query
@@ -70,9 +69,23 @@ const getMyOrders = catchAsync(async (req, res, next) => {
 });
 
 const getMyOrderRequests = catchAsync(async (req, res, next) => {
+  const orderQuery = new APIFeatures(
+    Order.find({ seller: req.user._id }),
+    req.query
+  )
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const orders = await orderQuery.query;
+
   res.status(200).json({
     status: "success",
-    message: "Getting all seller orders",
+    results: orders.length,
+    data: {
+      orders,
+    },
   });
 });
 

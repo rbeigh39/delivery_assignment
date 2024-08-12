@@ -21,6 +21,13 @@ router
     orderController.getMyOrders
   );
 
+router.get(
+  "/myOrderRequests",
+  authController.protect,
+  authController.restrictTo("SELLER"),
+  orderController.getMyOrderRequests
+);
+
 router.route("/:id").get(authController.protect, orderController.getOrder);
 
 module.exports = router;
