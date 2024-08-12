@@ -27,6 +27,12 @@ const productSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
+    location: {
+      type: { type: String, default: "Point", enum: ["Point"] },
+      coordinates: [Number],
+      address: String,
+      pin: Number,
+    },
   },
   {
     timestamps: true,
