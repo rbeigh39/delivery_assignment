@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const APIFeatures = require("../utils/apiFeatures");
 
 const Order = require("../models/order_model");
 const Product = require("../models/product_model");
@@ -46,9 +47,40 @@ const createOrder = catchAsync(async (req, res, next) => {
   });
 });
 
+const getMyOrders = catchAsync(async (req, res, next) => {
+  console.log("request is here rn");
+  const orderQuery = new APIFeatures(
+    Order.find({ buyer: req.user._id }),
+    req.query
+  )
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const orders = await orderQuery.query;
+
+  res.status(200).json({
+    status: "success",
+    results: orders.length,
+    data: {
+      orders,
+    },
+  });
+});
+
+const getMyOrderRequests = catchAsync(async (req, res, next) => {
+  res.status(200).json({
+    status: "success",
+    message: "Getting all seller orders",
+  });
+});
+
 const getOrder = () => {};
 
 module.exports = {
   createOrder,
+  getMyOrders,
+  getMyOrderRequests,
   getOrder,
 };

@@ -18,7 +18,7 @@ const getAll = (Model) =>
   catchAsync(async (req, res, next) => {
     // To allow for nested get reviews on tour
     let filter;
-    if (req.params.tourId) filter = { tour: req.params.tourId };
+    // if (req.params.tourId) filter = { tour: req.params.tourId };
 
     // Execute the query
     const features = new APIFeatures(Model.find(filter), req.query)

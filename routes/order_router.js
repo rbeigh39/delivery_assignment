@@ -12,6 +12,15 @@ router
     authController.restrictTo("BUYER"),
     orderController.createOrder
   );
+
+router
+  .route("/myOrders")
+  .get(
+    authController.protect,
+    authController.restrictTo("BUYER"),
+    orderController.getMyOrders
+  );
+
 router.route("/:id").get(authController.protect, orderController.getOrder);
 
 module.exports = router;
