@@ -21,4 +21,12 @@ router
     deliveryController.getInitiatedDeliveries
   );
 
+router
+  .route("/:id/requestJob")
+  .post(
+    authController.protect,
+    authController.restrictTo("DELIVERY"),
+    deliveryController.requestDeliveryJob
+  );
+
 module.exports = router;

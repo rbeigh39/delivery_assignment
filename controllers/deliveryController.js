@@ -57,7 +57,54 @@ const getInitiatedDeliveries = catchAsync(async (req, res, next) => {
   });
 });
 
+const requestDeliveryJob = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id))
+    return next(new AppError("Invalid id", 400));
+
+  // 1. CHECK: Verify that the user has no active deliveries
+  const activeDelivery = await Delivery.findOne({
+    fulfilmentPartner: req.user._id,
+    active: true,
+  });
+
+  if (activeDelivery)
+    return next(
+      new AppError(
+        "You already have an active delivery. Please fulfil the delivery before requesting another delivery",
+        400
+      )
+    );
+
+  // 2. CHECK: Verify that the delivery exists
+  const deliveryDoc = await Delivery.findById(id);
+  if (!deliveryDoc)
+    return next(new AppError("No delivery found with that id", 400));
+
+  // 3. CHECK: Verify that the delivery hasn't been already assigned fulfilment partner
+  if (deliveryDoc.fulfilmentPartner)
+    return next(
+      new AppError(
+        "The delivery has already been assigned a fulfilment partner",
+        400
+      )
+    );
+
+  // 4. Assign the user as the fulfilment partner for the delivery
+  deliveryDoc.fulfilmentPartner = req.user._id;
+  await deliveryDoc.save();
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      delivery: deliveryDoc,
+    },
+  });
+});
+
 module.exports = {
   requestDelivery,
   getInitiatedDeliveries,
+  requestDeliveryJob,
 };

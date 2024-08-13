@@ -29,6 +29,11 @@ const deliverySchema = new mongoose.Schema({
     default: "INITIATED",
     required: true,
   },
+  active: {
+    type: Boolean,
+    default: true,
+    required: true,
+  },
   deliveryCode: {
     type: String,
   },
