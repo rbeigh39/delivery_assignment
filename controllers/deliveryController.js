@@ -40,6 +40,24 @@ const requestDelivery = catchAsync(async (req, res, next) => {
   });
 });
 
+const getInitiatedDeliveries = catchAsync(async (req, res, next) => {
+  const initiatedDeliveriesQuery = new APIFeatures(
+    Delivery.find({ deliveryStatus: "INITIATED" }),
+    req.query
+  );
+
+  const initiatedDeliveries = await initiatedDeliveriesQuery.query;
+
+  res.status(200).json({
+    status: "success",
+    results: initiatedDeliveries.length,
+    data: {
+      deliveries: initiatedDeliveries,
+    },
+  });
+});
+
 module.exports = {
   requestDelivery,
+  getInitiatedDeliveries,
 };

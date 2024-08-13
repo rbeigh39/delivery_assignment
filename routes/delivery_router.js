@@ -13,4 +13,12 @@ router
     deliveryController.requestDelivery
   );
 
+router
+  .route("/initiated")
+  .get(
+    authController.protect,
+    authController.restrictTo("DELIVERY"),
+    deliveryController.getInitiatedDeliveries
+  );
+
 module.exports = router;
