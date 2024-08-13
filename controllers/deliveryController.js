@@ -189,6 +189,9 @@ const getMyActiveDelivery = catchAsync(async (req, res, next) => {
     active: true,
   });
 
+  if (!activeDelivery)
+    return next(new AppError("No active delivery found for you", 400));
+
   res.status(200).json({
     status: "success",
     data: {
