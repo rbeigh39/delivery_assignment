@@ -70,7 +70,7 @@ const getMyOrders = catchAsync(async (req, res, next) => {
 
 const getMyOrderRequests = catchAsync(async (req, res, next) => {
   const orderQuery = new APIFeatures(
-    Order.find({ seller: req.user._id }).populate("product"),
+    Order.find({ seller: req.user._id }).populate("product").populate("buyer"),
     req.query
   )
     .filter()
