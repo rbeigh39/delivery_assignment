@@ -25,13 +25,29 @@ const requestDelivery = catchAsync(async (req, res, next) => {
   const randomOTP = `${crypto.randomInt(100000, 1000000)}`;
   const hashedOTP = crypto.createHash("sha256").update(randomOTP).digest("hex");
 
+  // Create the transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   // 3. Create the delivery document
-  const delivery = await Delivery.create({
-    order: order._id,
-    pickupAddress: order.sellerAddress,
-    dropAddress: order.buyerAddress,
-    deliveryCode: hashedOTP,
-  });
+  const delivery = await Delivery.create(
+    [
+      {
+        order: order._id,
+        pickupAddress: order.sellerAddress,
+        dropAddress: order.buyerAddress,
+        deliveryCode: hashedOTP,
+      },
+    ],
+    { session }
+  )[0];
+
+  // 4. Update the order status
+  order.status = "IN-TRANSIT";
+  await order.save({ session });
+
+  await session.commitTransaction();
+  session.endSession();
 
   res.status(201).json({
     status: "success",
