@@ -167,11 +167,43 @@ const changeDeliveryStatus = catchAsync(async (req, res, next) => {
   });
 });
 
-const getMyDeleveries = catchAsync(async (req, res, next) => {});
+const getMyDeleveries = catchAsync(async (req, res, next) => {
+  const deliveryQuery = new APIFeatures(
+    Delivery.find({ fulfilmentPartner: req.user._id, active: false }, req.query)
+  );
+
+  const deliveryDocs = await deliveryQuery.query;
+
+  res.status(200).json({
+    status: "success",
+    results: deliveryDocs.length,
+    data: {
+      deliveries: deliveryDocs,
+    },
+  });
+});
+
+const getMyActiveDelivery = catchAsync(async (req, res, next) => {
+  const activeDelivery = await Delivery.findOne({
+    fulfilmentPartner: req.user._id,
+    active: true,
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      delivery: activeDelivery,
+    },
+  });
+});
+
+const fulfilDelivery = catchAsync(async (req, res, next) => {});
 
 module.exports = {
   requestDelivery,
   getInitiatedDeliveries,
   requestDeliveryJob,
   changeDeliveryStatus,
+  getMyDeleveries,
+  getMyActiveDelivery,
 };

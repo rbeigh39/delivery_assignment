@@ -22,6 +22,14 @@ router
   );
 
 router
+  .route("/myDeliveries")
+  .get(
+    authController.protect,
+    authController.restrictTo("DELIVERY"),
+    deliveryController.getMyDeleveries
+  );
+
+router
   .route("/:id/requestJob")
   .post(
     authController.protect,
