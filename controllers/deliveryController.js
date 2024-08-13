@@ -200,7 +200,47 @@ const getMyActiveDelivery = catchAsync(async (req, res, next) => {
   });
 });
 
-const fulfilDelivery = catchAsync(async (req, res, next) => {});
+const fulfilDelivery = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id))
+    return next(new AppError("Invalid id", 400));
+
+  // 1. CHECK: Verify if the delivery document exists
+  const delivery = await Delivery.findById(id);
+  if (!delivery)
+    return next(new AppError("No delivery found with that id", 400));
+
+  // 2. CHECK: Verify if the delivery has a fulfilment partner
+  if (!delivery.fulfilmentPartner)
+    return next(
+      new AppError("You are not authorized to perform this action", 401)
+    );
+
+  // 2. CHECK: Verify if the fulfilment partner is the requesting user
+  if (delivery.fulfilmentPartner.toString() !== req.user._id.toString())
+    return next(
+      new AppError("You are not authorized to perform this action", 400)
+    );
+
+  // 3. CHECK: Verify if the delivery document is active
+  if (!delivery.active)
+    return next(
+      new AppError(
+        "Delivery inactive. You are not authorized to perform this action",
+        401
+      )
+    );
+
+  // 4. Fulfil the delivery and set the active to false
+  delivery.deliveryStatus = "FULFILED";
+  delivery.active = false;
+  await delivery.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Delivery successfully fulfiled!",
+  });
+});
 
 module.exports = {
   requestDelivery,
@@ -209,4 +249,5 @@ module.exports = {
   changeDeliveryStatus,
   getMyDeleveries,
   getMyActiveDelivery,
+  fulfilDelivery,
 };

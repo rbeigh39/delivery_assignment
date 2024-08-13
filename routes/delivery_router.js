@@ -46,6 +46,14 @@ router
   );
 
 router
+  .route("/:id/fulfilDelivery")
+  .patch(
+    authController.protect,
+    authController.restrictTo("DELIVERY"),
+    deliveryController.fulfilDelivery
+  );
+
+router
   .route("/:id/updateStatus")
   .patch(
     authController.protect,
