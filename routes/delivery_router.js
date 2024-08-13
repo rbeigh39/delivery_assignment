@@ -29,4 +29,12 @@ router
     deliveryController.requestDeliveryJob
   );
 
+router
+  .route("/:id/updateStatus")
+  .patch(
+    authController.protect,
+    authController.restrictTo("DELIVERY"),
+    deliveryController.changeDeliveryStatus
+  );
+
 module.exports = router;

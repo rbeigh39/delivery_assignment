@@ -103,8 +103,74 @@ const requestDeliveryJob = catchAsync(async (req, res, next) => {
   });
 });
 
+const changeDeliveryStatus = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  // CHECK: Verify if the status exist in the request body
+  if (!status) return next(new AppError("Mising field: status"), 400);
+
+  if (!mongoose.Types.ObjectId.isValid(id))
+    return next(new AppError("Invalid id", 400));
+
+  // 1. CHECK: Verify if the delivery with that id exists
+  const delivery = await Delivery.findById(id);
+  if (!delivery)
+    return next(new AppError("No delevery found with that id", 400));
+
+  // 2. CHECK: Verify if the delivery actually has a fulfilment partner
+  if (!delivery.fulfilmentPartner)
+    return next(
+      new AppError(
+        "This delivery job is not fulfiled yet. Please request the job and try again",
+        401
+      )
+    );
+
+  // 3. CHECK: Verify if the fulfilment partner in the delivery document is same as the request user
+  if (delivery.fulfilmentPartner.toString() !== req.user._id.toString())
+    return next(
+      new AppError("You are not authorized to perform this action", 400)
+    );
+
+  // 4. Set the allowed list of status based on the current delivery status
+  const allowedStatusMappings = {
+    INITIATED: [],
+    "PARTNER-ASSIGNED": ["FULFILED"],
+    PICKEDUP: [],
+    FULFILED: [],
+  };
+
+  const currentMapping = allowedStatusMappings[delivery.deliveryStatus];
+  console.log("this is the current mapping: ", currentMapping);
+  if (currentMapping.indexOf(status) === -1)
+    return next(
+      new AppError(
+        `${
+          currentMapping.length === 0
+            ? "Not allowed to change status at the moment"
+            : `Status not allowed. Allowed status are: ${currentMapping}`
+        }, 400`
+      )
+    );
+
+  delivery.status = status;
+  await delivery.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "status successfully updated",
+    data: {
+      delivery,
+    },
+  });
+});
+
+const getMyDeleveries = catchAsync(async (req, res, next) => {});
+
 module.exports = {
   requestDelivery,
   getInitiatedDeliveries,
   requestDeliveryJob,
+  changeDeliveryStatus,
 };
