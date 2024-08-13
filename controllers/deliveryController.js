@@ -93,6 +93,7 @@ const requestDeliveryJob = catchAsync(async (req, res, next) => {
 
   // 4. Assign the user as the fulfilment partner for the delivery
   deliveryDoc.fulfilmentPartner = req.user._id;
+  deliveryDoc.deliveryStatus = "PARTNER-ASSIGNED";
   await deliveryDoc.save();
 
   res.status(200).json({
