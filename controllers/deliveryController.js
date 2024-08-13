@@ -137,8 +137,8 @@ const changeDeliveryStatus = catchAsync(async (req, res, next) => {
   // 4. Set the allowed list of status based on the current delivery status
   const allowedStatusMappings = {
     INITIATED: [],
-    "PARTNER-ASSIGNED": ["FULFILED"],
-    PICKEDUP: [],
+    "PARTNER-ASSIGNED": ["PICKEDUP", "FULFILED"],
+    PICKEDUP: ["FULFILED"],
     FULFILED: [],
   };
 
