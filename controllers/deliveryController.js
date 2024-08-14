@@ -16,6 +16,13 @@ const requestDelivery = catchAsync(async (req, res, next) => {
   const order = await Order.findById(orderId);
   if (!order) return next(new AppError("No order found with that Id", 400));
 
+  // CHECK: Verify if the order has been already requested for delivery
+  const activeDelivery = await Delivery.findOne({ order: orderId });
+  if (activeDelivery)
+    return next(
+      new AppError("Order has already been requested for delivery", 400)
+    );
+
   // 2. Check if the seller belongs to the order
   if (order.seller.toString() !== req.user._id.toString())
     return next(
@@ -23,31 +30,33 @@ const requestDelivery = catchAsync(async (req, res, next) => {
     );
 
   const randomOTP = `${crypto.randomInt(100000, 1000000)}`;
-  const hashedOTP = crypto.createHash("sha256").update(randomOTP).digest("hex");
+  const hashedOTP = await crypto
+    .createHash("sha256")
+    .update(randomOTP)
+    .digest("hex");
 
   // Create the transaction
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // const session = await mongoose.startSession();
+  // session.startTransaction();
 
   // 3. Create the delivery document
-  const delivery = await Delivery.create(
-    [
-      {
-        order: order._id,
-        pickupAddress: order.sellerAddress,
-        dropAddress: order.buyerAddress,
-        deliveryCode: hashedOTP,
-      },
-    ],
-    { session }
-  )[0];
+  const session = undefined;
+
+  const delivery = await Delivery.create({
+    order: order._id,
+    pickupAddress: order.sellerAddress,
+    dropAddress: order.buyerAddress,
+    deliveryCode: hashedOTP,
+  });
+
+  if (!delivery) return next(new AppError("Couldnt create delivery", 400));
 
   // 4. Update the order status
   order.status = "IN-TRANSIT";
   await order.save({ session });
 
-  await session.commitTransaction();
-  session.endSession();
+  // await session.commitTransaction();
+  // session.endSession();
 
   res.status(201).json({
     status: "success",
@@ -58,7 +67,17 @@ const requestDelivery = catchAsync(async (req, res, next) => {
 
 const getInitiatedDeliveries = catchAsync(async (req, res, next) => {
   const initiatedDeliveriesQuery = new APIFeatures(
-    Delivery.find({ deliveryStatus: "INITIATED" }),
+    Delivery.find({ deliveryStatus: "INITIATED" }).populate({
+      path: "order",
+      populate: [
+        {
+          path: "buyer",
+        },
+        {
+          path: "seller",
+        },
+      ],
+    }),
     req.query
   );
 
@@ -203,6 +222,16 @@ const getMyActiveDelivery = catchAsync(async (req, res, next) => {
   const activeDelivery = await Delivery.findOne({
     fulfilmentPartner: req.user._id,
     active: true,
+  }).populate({
+    path: "order",
+    populate: [
+      {
+        path: "buyer",
+      },
+      {
+        path: "seller",
+      },
+    ],
   });
 
   if (!activeDelivery)
