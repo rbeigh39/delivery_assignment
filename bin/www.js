@@ -14,6 +14,8 @@ const http = require("http");
 const https = require("https");
 const fs = require("fs");
 
+const socketIo = require("socket.io");
+
 const database = require("./database_config");
 const app = require("../app");
 
@@ -23,6 +25,30 @@ database.init();
 
 // CONFIGURE SERVER (HTTP & HTTPS)
 const http_server = http.createServer(app);
+
+const io = new socketIo.Server(http_server, {
+  cors: {
+    origin: true,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  const orderId = socket.handshake.query.orderId;
+
+  // Join the room with the order ID
+  socket.join(orderId);
+
+  // Listen for location updates from the delivery partner
+  socket.on("locationUpdate", (locationData) => {
+    // if (socket.user.role === "deliveryPartner") {
+    // Broadcast location to the buyer in the same room
+    // }
+
+    io.to(orderId).emit("locationUpdate", locationData);
+  });
+});
 
 const https_server = https.createServer(
   {
@@ -78,3 +104,5 @@ process.on("unhandledRejection", (err) => {
     });
   }
 });
+
+module.exports = { http_server, io };
