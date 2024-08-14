@@ -19,6 +19,7 @@
     "express-useragent": "^1.0.15",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mailersend": "^2.2.0",
     "mongoose": "^8.5.0",
     "morgan": "^1.10.0",
     "socket.io": "^4.7.5",
