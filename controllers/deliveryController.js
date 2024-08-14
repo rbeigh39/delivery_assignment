@@ -279,7 +279,14 @@ const fulfilDelivery = catchAsync(async (req, res, next) => {
   // 4. Fulfil the delivery and set the active to false
   delivery.deliveryStatus = "FULFILED";
   delivery.active = false;
-  await delivery.save();
+
+  const updatedOrderPromise = Order.findByIdAndUpdate(delivery.order, {
+    status: "FULFILED",
+  });
+
+  const deliveryPromise = delivery.save();
+
+  await Promise.all(updatedOrderPromise, deliveryPromise);
 
   res.status(200).json({
     status: "success",
