@@ -37,6 +37,12 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 const signup = catchAsync(async (req, res, next) => {
+  const randomOTP = `${crypto.randomInt(100000, 1000000)}`;
+  const hashedOTP = await crypto
+    .createHash("sha256")
+    .update(randomOTP)
+    .digest("hex");
+
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
@@ -44,9 +50,12 @@ const signup = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
     role: req.body.role,
+    emailVerificationCode: hashedOTP,
   });
 
-  const url = `${req.protocol}://${req.get("host")}/me`;
+  const url = `${req.protocol}://${req.get(
+    "host"
+  )}/api/v1/auth/verifyEmail?otp=${randomOTP}&email=${req.body.email}`;
   console.log(url);
   // await new Email(newUser, url).sendWelcome();
   await sendVerifyEmail({ email: req.body.email, url });
@@ -228,6 +237,27 @@ const updatePassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+const verifyEmail = catchAsync(async (req, res, next) => {
+  const { otp, email } = req.query;
+
+  const user = await User.findOne({ email });
+  if (!user) return next("No user found with that email", 400);
+
+  // 1. CHECK: Verify if the otp is correct
+  const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+
+  if (user.emailVerificationCode !== hashedOTP)
+    return next(new AppError("Invalid code", 401));
+
+  user.emailVerified = true;
+  await user.save();
+
+  res.status(200).json({
+    staus: "success",
+    message: "Email verification successful",
+  });
+});
+
 module.exports = {
   signup,
   login,
@@ -237,4 +267,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   updatePassword,
+  verifyEmail,
 };

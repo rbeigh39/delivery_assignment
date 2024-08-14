@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema(
       default: true,
       select: false,
     },
+    emailVerificationCode: String,
+    emailVerified: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   {
     toJSON: { virtuals: true },
