@@ -260,12 +260,17 @@ const verifyEmail = catchAsync(async (req, res, next) => {
 
 const blockUnverifiedEmail = catchAsync(async (req, res, next) => {
   if (!req.user.emailVerified)
-    return next(
-      new AppError(
-        "Email not verified. Please verify email before continuing.",
-        400
-      )
-    );
+    // return next(
+    //   new AppError(
+    //     "Email not verified. Please verify email before continuing.",
+    //     400
+    //   )
+    // );
+    throw {
+      message: "Email not verified. Please verify email before continuing.",
+      statusCode: 401,
+      errorCode: "0001",
+    };
 
   next();
 });
