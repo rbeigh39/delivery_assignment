@@ -30,6 +30,9 @@ const handleJWTExpiredError = () =>
 const sendErrorDev = (err, req, res) => {
   // API
   if (req.originalUrl.startsWith("/api")) {
+    if (err.statusCode === 500) {
+      console.error("Error :::::", err);
+    }
     return res.status(err.statusCode).json({
       status: err.status,
       error: err,
@@ -38,7 +41,6 @@ const sendErrorDev = (err, req, res) => {
     });
   }
 
-  // Rendered Website
   console.error("ERROR ***** ", err);
 
   return res.status(err.statusCode).render("error", {

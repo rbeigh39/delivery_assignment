@@ -178,7 +178,6 @@ const changeDeliveryStatus = catchAsync(async (req, res, next) => {
   };
 
   const currentMapping = allowedStatusMappings[delivery.deliveryStatus];
-  console.log("this is the current mapping: ", currentMapping);
   if (currentMapping.indexOf(status) === -1)
     return next(
       new AppError(
@@ -190,7 +189,7 @@ const changeDeliveryStatus = catchAsync(async (req, res, next) => {
       )
     );
 
-  delivery.status = status;
+  delivery.deliveryStatus = status;
   await delivery.save();
 
   res.status(200).json({
@@ -286,7 +285,7 @@ const fulfilDelivery = catchAsync(async (req, res, next) => {
 
   const deliveryPromise = delivery.save();
 
-  await Promise.all(updatedOrderPromise, deliveryPromise);
+  await Promise.all([updatedOrderPromise, deliveryPromise]);
 
   res.status(200).json({
     status: "success",
