@@ -1,6 +1,10 @@
 # Order Delivery
 
-This is an order delivery application. This application is developed as an assignment MVP for order delivery platform. This code base is for the backend of this application developed in Node.js, Express, Mongodb / mongoose.
+This is an order delivery application. This application is developed as an assignment MVP for order delivery platform. This code base is for the backend of this application developed in:
+* Node.js 
+* Express
+* Mongodb / mongoose
+* Socket io
 
 ### Application Flow
 ---
