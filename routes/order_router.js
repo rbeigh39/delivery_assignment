@@ -10,6 +10,7 @@ router
   .post(
     authController.protect,
     authController.restrictTo("BUYER"),
+    authController.blockUnverifiedEmail,
     orderController.createOrder
   );
 

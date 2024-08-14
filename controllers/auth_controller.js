@@ -258,6 +258,18 @@ const verifyEmail = catchAsync(async (req, res, next) => {
   });
 });
 
+const blockUnverifiedEmail = catchAsync(async (req, res, next) => {
+  if (!req.user.emailVerified)
+    return next(
+      new AppError(
+        "Email not verified. Please verify email before continuing.",
+        400
+      )
+    );
+
+  next();
+});
+
 module.exports = {
   signup,
   login,
@@ -268,4 +280,5 @@ module.exports = {
   resetPassword,
   updatePassword,
   verifyEmail,
+  blockUnverifiedEmail,
 };
