@@ -72,7 +72,7 @@ http_server.on("listening", () => {
 });
 
 http_server.on("error", (err) => {
-  console.log(`Error starting HTTP server 💥💥💥`);
+  console.log(`Error starting HTTP server 💥💥💥`, err);
 });
 
 https_server.on("listening", () => {
@@ -80,7 +80,7 @@ https_server.on("listening", () => {
 });
 
 https_server.on("error", (err) => {
-  console.log(`Error starting HTTPS server 💥💥💥`);
+  console.log(`Error starting HTTPS server 💥💥💥`, err);
 });
 
 // Start server (HTTP & HTTPS)
