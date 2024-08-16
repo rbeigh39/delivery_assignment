@@ -3,7 +3,6 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const Factory = require("./handlerFactory");
 
-const createProduct = Factory.createOne(Product);
 const getAllProducts = Factory.getAll(Product);
 const getProductById = Factory.updateOne(Product);
 const updateProduct = Factory.updateOne(Product);
@@ -29,6 +28,30 @@ const checkProductOwner = catchAsync(async (req, res, next) => {
 const setSellerId = catchAsync(async (req, res, next) => {
   req.body.seller = req.user._id;
   next();
+});
+
+const createProduct = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.file || !req.file.filename) {
+      return next(
+        new AppError("Missing image. Please add image and try again.", 400)
+      );
+    }
+
+    req.body.imageUrl = req.file.path;
+    req.body.location = JSON.parse(req.body.location);
+
+    const product = await Product.create(req.body);
+    res.status(200).json({
+      status: "success",
+      data: {
+        product,
+      },
+    });
+  } catch (error) {
+    if (req.deleteFile) req.deleteFile();
+    throw error;
+  }
 });
 
 module.exports = {
