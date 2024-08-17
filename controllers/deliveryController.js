@@ -76,12 +76,18 @@ const getInitiatedDeliveries = catchAsync(async (req, res, next) => {
         {
           path: "seller",
         },
+        {
+          path: "product",
+          select: ["category", "name", "imageUrl", "price", "description"],
+        },
       ],
     }),
     req.query
   );
 
   const initiatedDeliveries = await initiatedDeliveriesQuery.query;
+
+  console.log("Initiated deliveries", initiatedDeliveries);
 
   res.status(200).json({
     status: "success",
@@ -229,6 +235,10 @@ const getMyActiveDelivery = catchAsync(async (req, res, next) => {
       },
       {
         path: "seller",
+      },
+      {
+        path: "product",
+        select: ["category", "name", "imageUrl", "price", "description"],
       },
     ],
   });
