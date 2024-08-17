@@ -19,7 +19,7 @@ router
     productController.setSellerId,
     productController.createProduct
   )
-  .get(productController.getAllProducts);
+  .get(authController.protect, productController.getAllProducts);
 
 router
   .route("/:id")

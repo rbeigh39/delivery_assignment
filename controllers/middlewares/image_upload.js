@@ -16,7 +16,7 @@ const cloudinaryStorage = new CloudinaryStorage({
   params: async (req, file) => {
     return {
       folder: "product_images",
-      allowed_formats: ["jpg", "png"],
+      allowed_formats: ["jpg", "png", "webp"],
       public_id: uuid.v4(),
     };
   },
