@@ -1,23 +1,5 @@
-// const sgMail = require("@sendgrid/mail");
-
-// sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
-// const sendVerifyEmail = async () => {
-//   const emailOptions = {
-//     to: "test@example.com", // Change to your recipient
-//     from: "test@example.com", // Change to your verified sender
-//     subject: "Sending with SendGrid is Fun",
-//     text: "and easy to do anywhere, even with Node.js",
-//     html: "<strong>and easy to do anywhere, even with Node.js</strong>",
-//   };
-
-//   const response = await sgMail.send(emailOptions);
-//   console.log("this is the response from email: ", response);
-// };
-
-// module.exports = {
-//   sendVerifyEmail,
-// };
+const Mailgen = require("mailgen");
+const nodemailer = require("nodemailer");
 
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
 
@@ -49,6 +31,81 @@ const sendVerifyEmail = async ({ email, url }) => {
   console.log("email send: ", response);
 };
 
+// module.exports = {
+//   sendVerifyEmail,
+// };
+
+// import Mailgen from "mailgen";
+// import nodemailer from "nodemailer";
+
+const sendEmail = async (options) => {
+  // Initialize mailgen instance with default theme and brand configuration
+  const mailGenerator = new Mailgen({
+    theme: "default",
+    product: {
+      name: "DeliveryApp",
+      link: "https://deliveryapptest.com",
+    },
+  });
+
+  // Generate the plaintext version of the e-mail (for clients that do not support HTML)
+  const emailTextual = mailGenerator.generatePlaintext(options.mailgenContent);
+
+  // Generate an HTML email with the provided contents
+  const emailHtml = mailGenerator.generate(options.mailgenContent);
+
+  // Create a nodemailer transporter instance which is responsible to send a mail
+  const transporter = nodemailer.createTransport({
+    host: process.env.MAILTRAP_SMTP_HOST,
+    port: process.env.MAILTRAP_SMTP_PORT,
+    auth: {
+      user: process.env.MAILTRAP_SMTP_USER,
+      pass: process.env.MAILTRAP_SMTP_PASS,
+    },
+  });
+
+  const mail = {
+    from: "mail.delivery@gmail.com", // We can name this anything. The mail will go to your Mailtrap inbox
+    to: options.email, // receiver's mail
+    subject: options.subject, // mail subject
+    text: emailTextual, // mailgen content textual variant
+    html: emailHtml, // mailgen content html variant
+  };
+
+  try {
+    await transporter.sendMail(mail);
+  } catch (error) {
+    // As sending email is not strongly coupled to the business logic it is not worth to raise an error when email sending fails
+    // So it's better to fail silently rather than breaking the app
+    console.log(
+      "Email service failed silently. Make sure you have provided your MAILTRAP credentials in the .env file"
+    );
+    console.log("Error: ", error);
+  }
+};
+
+const emailVerificationMailgenContent = (username, verificationUrl) => {
+  return {
+    body: {
+      name: username,
+      intro: "Welcome to our app! We're very excited to have you on board.",
+      action: {
+        instructions:
+          "To verify your email please click on the following button:",
+        button: {
+          color: "#22BC66", // Optional action button color
+          text: "Verify your email",
+          link: verificationUrl,
+        },
+      },
+      outro:
+        "Need help, or have questions? Just reply to this email, we'd love to help.",
+    },
+  };
+};
+
 module.exports = {
   sendVerifyEmail,
+  sendEmail,
+  emailVerificationMailgenContent,
 };
