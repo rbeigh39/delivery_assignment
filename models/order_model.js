@@ -22,6 +22,9 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    quantity: {
+      type: Number,
+    },
     buyerAddress: {
       type: { type: String, default: "Point", enum: ["Point"] },
       coordinates: [Number],
